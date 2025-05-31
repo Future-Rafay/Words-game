@@ -2,7 +2,7 @@
 
 A fun and educational web-based game where players guess famous quotes and learn their meanings. Built with HTML, CSS, and JavaScript.
 
-![Wisdom Grid Game](ss.png)
+![Wisdom Grid Game](public/images/ss.png)
 
 ## 🌟 Features
 
