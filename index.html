@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wisdom Grid</title>
+    <meta
+      name="description"
+      content="Wisdom Grid is a fun web-based game where you guess famous quotes and learn their meanings."
+    />
+    <meta
+      name="keywords"
+      content="quote game, guess the quote, educational game, web game, brain game, wisdom, proverbs"
+    />
+    <meta name="author" content="Rafay Nadeem" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- SweetAlert2 CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <!-- Main Menu -->
+    <div id="main-menu" class="menu-container">
+      <div class="menu-content">
+        <h1 class="text-center mb-8">Wisdom Grid</h1>
+        <div class="menu-buttons">
+          <button id="start-game" class="menu-btn">Start Game</button>
+          <button id="settings-btn" class="menu-btn">Settings</button>
+          <button id="how-to-play-btn" class="menu-btn">How to Play</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Selection Panel -->
+    <div id="category-panel" class="menu-container hidden">
+      <div class="menu-content">
+        <h2 class="text-center mb-8">Select Category</h2>
+        <div class="category-buttons">
+          <button class="category-btn" data-category="random">Random Category</button>
+          <button class="category-btn" data-category="prophetsSayings">Prophet's Sayings</button>
+          <button class="category-btn" data-category="islamicQuotes">Islamic Quotes</button>
+          <button class="category-btn" data-category="motivationalQuotes">Motivational Quotes</button>
+          <button class="category-btn" data-category="famousPhrases">Famous Phrases</button>
+        </div>
+        <button id="back-to-main" class="menu-btn mt-6">Back to Menu</button>
+      </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="settings-container hidden">
+      <div class="settings-content">
+        <h2 class="text-center mb-6">Settings</h2>
+        <div class="settings-options">
+          <div class="setting-item">
+            <label for="sound-toggle">Sound Effects</label>
+            <label class="switch">
+              <input type="checkbox" id="sound-toggle" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <label for="music-toggle">Background Music</label>
+            <label class="switch">
+              <input type="checkbox" id="music-toggle" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <label for="hints-toggle">Show Hint Numbers</label>
+            <label class="switch">
+              <input type="checkbox" id="hints-toggle" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        <button id="back-to-menu" class="menu-btn mt-6">Back to Menu</button>
+      </div>
+    </div>
+
+    <!-- How to Play Panel -->
+    <div id="how-to-play-panel" class="settings-container hidden">
+      <div class="settings-content">
+        <h2 class="text-center mb-6">How to Play</h2>
+        <div class="how-to-play-content">
+          <p>
+            1. Guess the hidden quote by selecting letters from the keyboard.
+          </p>
+          <p>2. You have 3 wrong attempts before the game ends.</p>
+          <p>3. Use hints to reveal letters (3 hints per game).</p>
+          <p>4. Build your streak by completing quotes successfully.</p>
+          <p>5. Punctuation marks are shown automatically.</p>
+        </div>
+        <button id="back-to-menu-from-help" class="menu-btn mt-6">
+          Back to Menu
+        </button>
+      </div>
+    </div>
+
+    <!-- Game Container -->
+    <div
+      id="game-container"
+      class="container mx-auto px-4 py-8 hidden flex-grow"
+    >
+      <!-- Game Title and Stats -->
+      <div class="flex flex-col items-center mb-8">
+        <div class="flex justify-between w-full items-center">
+          <button id="menu-btn" class="menu-icon-btn">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+          <h1 class="text-center">Wisdom Grid</h1>
+          <button id="settings-icon-btn" class="menu-icon-btn">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="stats-container">
+          <div class="current-streak">
+            Current Streak: <span id="current-streak">0</span>
+          </div>
+          <div class="best-streak">
+            Best Streak: <span id="best-streak">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quote Display Area -->
+      <div id="quote-display" class="mb-8">
+        <div id="quote-boxes" class="flex flex-wrap justify-center gap-2">
+          <!-- Quote boxes will be generated by JavaScript -->
+        </div>
+        <div
+          id="quote-attribution"
+          class="text-center mt-4 text-gray-400 italic"
+        >
+          <!-- Quote attribution will be generated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Message Area -->
+      <div id="message-area" class="text-center">
+        <!-- Game messages will appear here -->
+      </div>
+
+      <!-- Game Controls -->
+      <div class="game-controls mb-8">
+        <button id="hint-button" class="hint-btn">
+          Get Hint
+          <span class="hint-count">(3)</span>
+        </button>
+      </div>
+
+      <!-- Keyboard -->
+      <div id="keyboard" class="keyboard-container">
+        <!-- Keyboard rows will be generated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 text-center py-4 mt-auto">
+      <div class="container mx-auto px-4">
+        <p>&copy; 2025 Wisdom Grid. All rights reserved.</p>
+        <p>
+          Made by
+          <a
+            href="https://www.linkedin.com/in/rafay-nadeem-web-developer/"
+            target="_blank"
+            class="text-blue-400 hover:underline"
+            >Rafay Nadeem</a
+          >
+        </p>
+      </div>
+    </footer>
+
+    <script src="sounds.js"></script>
+    <script src="quotes.js"></script>
+    <script src="script.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+  </body>
+</html>
