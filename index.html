@@ -13,6 +13,7 @@
       content="quote game, guess the quote, educational game, web game, brain game, wisdom, proverbs"
     />
     <meta name="author" content="Rafay Nadeem" />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
     <link
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       rel="stylesheet"
@@ -27,7 +28,17 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
     />
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <meta property="og:title" content="Wisdom Grid" />
+    <meta
+      property="og:description"
+      content="Guess the quote. Learn the wisdom. Play now!"
+    />
+    <meta
+      property="og:image"
+      content="https://wisdom-grid.vercel.app/og-image.jpg"
+    />
+    <meta property="og:url" content="https://wisdom-grid.vercel.app/" />
+    <meta property="og:type" content="website" />
   </head>
   <body class="min-h-screen flex flex-col">
     <!-- Main Menu -->
@@ -47,11 +58,21 @@
       <div class="menu-content">
         <h2 class="text-center mb-8">Select Category</h2>
         <div class="category-buttons">
-          <button class="category-btn" data-category="random">Random Category</button>
-          <button class="category-btn" data-category="prophetsSayings">Prophet's Sayings</button>
-          <button class="category-btn" data-category="islamicQuotes">Islamic Quotes</button>
-          <button class="category-btn" data-category="motivationalQuotes">Motivational Quotes</button>
-          <button class="category-btn" data-category="famousPhrases">Famous Phrases</button>
+          <button class="category-btn" data-category="random">
+            Random Category
+          </button>
+          <button class="category-btn" data-category="prophetsSayings">
+            Prophet's Sayings
+          </button>
+          <button class="category-btn" data-category="islamicQuotes">
+            Islamic Quotes
+          </button>
+          <button class="category-btn" data-category="motivationalQuotes">
+            Motivational Quotes
+          </button>
+          <button class="category-btn" data-category="famousPhrases">
+            Famous Phrases
+          </button>
         </div>
         <button id="back-to-main" class="menu-btn mt-6">Back to Menu</button>
       </div>
