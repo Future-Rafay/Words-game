@@ -46,7 +46,9 @@ const gameState = {
         musicEnabled: true,
         showHints: true
     },
-    usedQuotes: new Set()
+    usedQuotes: new Set(),
+    difficulty: null,
+    initialRevealPercentage: 0.2
 };
 
 // Initialize the game
@@ -364,23 +366,20 @@ function generateLetterHints() {
 function createQuoteBoxes() {
     quoteBoxes.innerHTML = '';
     
-    // Get all letters from the quote (excluding spaces and punctuation)
-    const letters = gameState.currentQuote.split('').filter(char => /[A-Z]/.test(char));
+    // Get all unique letters from the quote (excluding spaces and punctuation)
+    const uniqueLettersInQuote = [...new Set(gameState.currentQuote.replace(/[^A-Z]/g, ''))];
     
-    // Calculate how many letters to reveal initially (about 20% of total letters)
-    const totalLetters = letters.length;
-    const lettersToReveal = Math.max(1, Math.floor(totalLetters * 0.2));
+    // Calculate how many unique letters to reveal initially
+    const totalUniqueLetters = uniqueLettersInQuote.length;
+    const uniqueLettersToRevealCount = Math.max(1, Math.floor(totalUniqueLetters * gameState.initialRevealPercentage));
     
-    // Create a set of random indices to reveal
-    const revealIndices = new Set();
-    while (revealIndices.size < lettersToReveal) {
-        const randomIndex = Math.floor(Math.random() * totalLetters);
-        revealIndices.add(randomIndex);
-    }
-    
-    // Keep track of the current letter index
-    let letterIndex = 0;
-    
+    // Randomly select unique letters to reveal
+    const shuffledUniqueLetters = uniqueLettersInQuote.sort(() => Math.random() - 0.5);
+    const lettersToReveal = new Set(shuffledUniqueLetters.slice(0, uniqueLettersToRevealCount));
+
+    // Add the initially revealed letters to guessedLetters
+    lettersToReveal.forEach(letter => gameState.guessedLetters.add(letter));
+
     gameState.currentQuote.split('').forEach(char => {
         if (char === ' ') {
             const space = document.createElement('div');
@@ -400,17 +399,15 @@ function createQuoteBoxes() {
             // Add hint number
             const hintNumber = document.createElement('span');
             hintNumber.className = 'hint-number';
-            hintNumber.textContent = gameState.letterHints.get(char);
+            hintNumber.textContent = gameState.letterHints.get(char); // Use existing hint number logic
             hintNumber.style.display = gameState.settings.showHints ? 'block' : 'none';
             box.appendChild(hintNumber);
             
-            // If this letter should be revealed initially
-            if (revealIndices.has(letterIndex)) {
+            // If this letter should be revealed initially (check if the unique letter is in our set)
+            if (lettersToReveal.has(char)) {
                 const letterSpan = document.createElement('span');
                 letterSpan.textContent = char;
                 box.appendChild(letterSpan);
-                // Add this letter to guessed letters so it can't be guessed again
-                gameState.guessedLetters.add(char);
             } else {
                 // Add underscore placeholder
                 const underscore = document.createElement('span');
@@ -419,12 +416,36 @@ function createQuoteBoxes() {
             }
             
             quoteBoxes.appendChild(box);
-            letterIndex++;
         }
     });
 
     // Update quote attribution
     quoteAttribution.textContent = `- ${gameState.currentAuthor}`;
+
+    // After creating boxes, update the keyboard state based on guessed letters (including initially revealed)
+    updateKeyboardState();
+}
+
+// Add a new function to update keyboard state based on gameState.guessedLetters
+function updateKeyboardState() {
+    const buttons = document.querySelectorAll('.key-btn');
+    buttons.forEach(button => {
+        const letter = button.textContent;
+        if (gameState.guessedLetters.has(letter)) {
+            button.disabled = true;
+            // Add 'correct' class if it's a revealed letter
+            if (gameState.currentQuote.includes(letter)) {
+                 button.classList.add('correct');
+            } else {
+                 // This case should ideally not happen for initially revealed letters
+                 // but handles incorrect guesses correctly.
+                 button.classList.add('incorrect');
+            }
+        } else {
+            button.disabled = false;
+            button.classList.remove('correct', 'incorrect');
+        }
+    });
 }
 
 // Create keyboard
@@ -683,25 +704,87 @@ document.querySelectorAll('.category-btn').forEach(button => {
     button.addEventListener('click', () => {
         currentCategory = button.dataset.category;
         document.getElementById('category-panel').classList.add('hidden');
+        document.getElementById('difficulty-panel').classList.remove('hidden');
+    });
+});
+
+// Add back to main menu handler
+document.getElementById('back-to-main').addEventListener('click', () => {
+    document.getElementById('category-panel').classList.add('hidden');
+    document.getElementById('main-menu').classList.remove('hidden');
+});
+
+// Add back to category selection handler
+document.getElementById('back-to-category').addEventListener('click', () => {
+    document.getElementById('difficulty-panel').classList.add('hidden');
+    document.getElementById('category-panel').classList.remove('hidden');
+});
+
+// Add difficulty selection handlers
+document.querySelectorAll('#difficulty-panel .menu-btn').forEach(button => {
+    button.addEventListener('click', () => {
+        gameState.difficulty = button.dataset.difficulty; // Store selected difficulty
+        document.getElementById('difficulty-panel').classList.add('hidden');
         document.getElementById('game-container').classList.remove('hidden');
         startNewGame();
     });
 });
 
-// Modify your startNewGame function to use the selected category
+// Modify your startNewGame function to use the selected category and difficulty
 function startNewGame() {
-    if (!currentCategory) return;
+    if (!currentCategory || !gameState.difficulty) return; // Ensure category and difficulty are selected
     
-    let selectedQuotes;
+    let selectedQuotesSource;
+    // Select the quotes source based on difficulty
+    switch (gameState.difficulty) {
+        case 'easy':
+            selectedQuotesSource = EasyQuotesByCategory;
+            gameState.maxAttempts = 5; // More attempts for easy
+            gameState.hintsRemaining = 5; // More hints for easy
+            gameState.initialRevealPercentage = 0.3; // Reveal 30% of letters
+            break;
+        case 'normal':
+            selectedQuotesSource = NormalQuotesByCategory;
+            gameState.maxAttempts = 3; // Default attempts
+            gameState.hintsRemaining = 3; // Default hints
+            gameState.initialRevealPercentage = 0.2; // Reveal 20% of letters
+            break;
+        case 'hard':
+            selectedQuotesSource = HardQuotesByCategory;
+            gameState.maxAttempts = 2; // Fewer attempts for hard
+            gameState.hintsRemaining = 1; // Fewer hints for hard
+            gameState.initialRevealPercentage = 0.1; // Reveal 10% of letters
+            break;
+        default:
+            // Default to normal if difficulty is not set or recognized
+            selectedQuotesSource = NormalQuotesByCategory;
+            gameState.maxAttempts = 3;
+            gameState.hintsRemaining = 3;
+            gameState.initialRevealPercentage = 0.2;
+            break;
+    }
+
+    let availableQuotes;
     if (currentCategory === 'random') {
-        // Get all quotes from all categories
-        selectedQuotes = Object.values(quotesByCategory).flat();
+        // Get all quotes from all categories in the selected source
+        availableQuotes = Object.values(selectedQuotesSource).flat();
     } else {
-        selectedQuotes = quotesByCategory[currentCategory];
+        // Get quotes from the specific category in the selected source
+        availableQuotes = selectedQuotesSource[currentCategory];
     }
     
-    const randomIndex = Math.floor(Math.random() * selectedQuotes.length);
-    const selectedQuote = selectedQuotes[randomIndex];
+    // Ensure there are quotes available for the selected category/difficulty
+    if (!availableQuotes || availableQuotes.length === 0) {
+        console.error(`No quotes found for category: ${currentCategory} and difficulty: ${gameState.difficulty}`);
+        // Optionally show an error message to the user or go back to menu
+        updateMessage('No quotes available for this selection.', 'error');
+        // For now, let's just go back to the main menu
+        setTimeout(showMainMenu, 2000);
+        return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * availableQuotes.length);
+    const selectedQuote = availableQuotes[randomIndex];
     
     gameState.currentQuote = selectedQuote.quote.toUpperCase();
     gameState.currentAuthor = selectedQuote.author;
@@ -712,13 +795,15 @@ function startNewGame() {
     gameState.attempts = 0;
     gameState.isGameOver = false;
     gameState.letterHints.clear();
-    gameState.hintsRemaining = 3;
+    // hintsRemaining and maxAttempts are now set by difficulty
     
     // Reset UI
     generateLetterHints();
-    createQuoteBoxes();
-    createKeyboard(); // Make sure to create the keyboard
-    setupHintButton();
+    createQuoteBoxes(); // createQuoteBoxes will now use initialRevealPercentage and add to guessedLetters
+    createKeyboard();
+    // Call updateKeyboardState here after createKeyboard to reflect initially revealed letters
+    updateKeyboardState();
+    setupHintButton(); // Ensure hint button count is updated
     updateHintButton();
     updateMessage('New game! Guess the quote!', '');
 } 
