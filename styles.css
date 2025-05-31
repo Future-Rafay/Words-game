@@ -446,13 +446,13 @@ h1 {
     }
 
     .quote-box {
-        width: 32px;
-        height: 32px;
-        font-size: 1.25rem;
+        width: 34px;
+        height: 34px;
+        font-size: 1rem;
     }
 
     .punctuation {
-        font-size: 1.25rem;
+        font-size: 1rem;
     }
 
     .hint-number {
