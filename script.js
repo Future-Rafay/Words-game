@@ -363,6 +363,24 @@ function generateLetterHints() {
 // Create quote boxes
 function createQuoteBoxes() {
     quoteBoxes.innerHTML = '';
+    
+    // Get all letters from the quote (excluding spaces and punctuation)
+    const letters = gameState.currentQuote.split('').filter(char => /[A-Z]/.test(char));
+    
+    // Calculate how many letters to reveal initially (about 20% of total letters)
+    const totalLetters = letters.length;
+    const lettersToReveal = Math.max(1, Math.floor(totalLetters * 0.2));
+    
+    // Create a set of random indices to reveal
+    const revealIndices = new Set();
+    while (revealIndices.size < lettersToReveal) {
+        const randomIndex = Math.floor(Math.random() * totalLetters);
+        revealIndices.add(randomIndex);
+    }
+    
+    // Keep track of the current letter index
+    let letterIndex = 0;
+    
     gameState.currentQuote.split('').forEach(char => {
         if (char === ' ') {
             const space = document.createElement('div');
@@ -386,12 +404,22 @@ function createQuoteBoxes() {
             hintNumber.style.display = gameState.settings.showHints ? 'block' : 'none';
             box.appendChild(hintNumber);
             
-            // Add underscore placeholder
-            const underscore = document.createElement('span');
-            underscore.textContent = '_';
-            box.appendChild(underscore);
+            // If this letter should be revealed initially
+            if (revealIndices.has(letterIndex)) {
+                const letterSpan = document.createElement('span');
+                letterSpan.textContent = char;
+                box.appendChild(letterSpan);
+                // Add this letter to guessed letters so it can't be guessed again
+                gameState.guessedLetters.add(char);
+            } else {
+                // Add underscore placeholder
+                const underscore = document.createElement('span');
+                underscore.textContent = '_';
+                box.appendChild(underscore);
+            }
             
             quoteBoxes.appendChild(box);
+            letterIndex++;
         }
     });
 
@@ -526,7 +554,11 @@ function endGame(isWin) {
             updateMessage('');
             Swal.fire({
                 title: 'You Won!',
-                html: `Congratulations! You guessed the quote!<br><br>${meaningElementHTML}<br><br>Would you like to play again?`,
+                html: `Congratulations! You guessed the quote!<br><br>
+                The quote was:<br><br><strong>${gameState.currentQuote}</strong><br>
+                ${gameState.currentAuthor ? `<strong>- ${gameState.currentAuthor}</strong>` : ''}
+                <br>
+                ${meaningElementHTML}<br><br>Would you like to play again?`,
                 icon: 'success',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
